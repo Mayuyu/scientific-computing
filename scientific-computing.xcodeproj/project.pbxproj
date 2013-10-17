@@ -28,6 +28,15 @@
 		3098F6211810377D009CBAEB /* scientific-computing */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scientific-computing"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3098F6241810377D009CBAEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3098F6261810377D009CBAEB /* scientific_computing.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = scientific_computing.1; sourceTree = "<group>"; };
+		3098F62D181037DF009CBAEB /* complex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = complex.h; sourceTree = "<group>"; };
+		3098F62E181037F1009CBAEB /* dynamicMatrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dynamicMatrix.h; sourceTree = "<group>"; };
+		3098F62F181037FF009CBAEB /* dynamicVector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dynamicVector.h; sourceTree = "<group>"; };
+		3098F6301810381D009CBAEB /* gamma.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gamma.h; sourceTree = "<group>"; };
+		3098F63118103831009CBAEB /* gauss_wgts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gauss_wgts.h; sourceTree = "<group>"; };
+		3098F6321810383F009CBAEB /* list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; };
+		3098F63318103852009CBAEB /* matrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
+		3098F6341810385B009CBAEB /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
+		3098F63518103865009CBAEB /* polynomial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = polynomial.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,8 +69,17 @@
 		3098F6231810377D009CBAEB /* scientific-computing */ = {
 			isa = PBXGroup;
 			children = (
-				3098F6241810377D009CBAEB /* main.cpp */,
 				3098F6261810377D009CBAEB /* scientific_computing.1 */,
+				3098F6241810377D009CBAEB /* main.cpp */,
+				3098F62D181037DF009CBAEB /* complex.h */,
+				3098F62E181037F1009CBAEB /* dynamicMatrix.h */,
+				3098F62F181037FF009CBAEB /* dynamicVector.h */,
+				3098F6301810381D009CBAEB /* gamma.h */,
+				3098F63118103831009CBAEB /* gauss_wgts.h */,
+				3098F6321810383F009CBAEB /* list.h */,
+				3098F63318103852009CBAEB /* matrix.h */,
+				3098F63518103865009CBAEB /* polynomial.h */,
+				3098F6341810385B009CBAEB /* vector.h */,
 			);
 			path = "scientific-computing";
 			sourceTree = "<group>";
@@ -195,6 +213,7 @@
 		3098F62B1810377D009CBAEB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -202,6 +221,7 @@
 		3098F62C1810377D009CBAEB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

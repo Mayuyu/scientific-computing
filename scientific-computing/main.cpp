@@ -7,12 +7,15 @@
 //
 
 #include <iostream>
+#include "gauss_wgts.h"
+using namespace std;
 
 int main(int argc, const char * argv[])
 {
-
-    // insert code here...
-    std::cout << "Hello, World!\n";
+    dynamicVector<double> a(4,0.),b(4,0.);
+    gaulag(a, b, 0.);
+    cout<<a<<" "<<endl;
+    cout<<b<<endl;
     return 0;
 }
 
