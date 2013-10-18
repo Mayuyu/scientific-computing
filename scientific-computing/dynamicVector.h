@@ -183,9 +183,9 @@ ostream& operator <<(ostream& out, const dynamicVector<T>&v){
     out << "(";
     for (int i = 0; i < v.dim(); i++){
         if(i != v.dim() - 1)
-            out << "v[" << i << "]=" << v[i] << ", ";
+            out << v[i] << ", ";
         else
-            out << "v[" << i << "]=" << v[i] << ")";
+            out << v[i] << ")";
     }
     return out;
 }  //  print a dynamicVector
