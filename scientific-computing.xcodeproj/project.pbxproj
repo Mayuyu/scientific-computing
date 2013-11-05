@@ -25,6 +25,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		308C19AF1828EFA600B86F16 /* asolve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asolve.h; sourceTree = "<group>"; };
 		3098F6211810377D009CBAEB /* scientific-computing */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scientific-computing"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3098F6241810377D009CBAEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3098F6261810377D009CBAEB /* scientific_computing.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = scientific_computing.1; sourceTree = "<group>"; };
@@ -37,6 +38,8 @@
 		3098F63318103852009CBAEB /* matrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		3098F6341810385B009CBAEB /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
 		3098F63518103865009CBAEB /* polynomial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = polynomial.h; sourceTree = "<group>"; };
+		30C837F41828DEB400EC6813 /* sparse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sparse.h; sourceTree = "<group>"; };
+		30C837F51828E6C600EC6813 /* linbcg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linbcg.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,8 +73,11 @@
 			isa = PBXGroup;
 			children = (
 				3098F6261810377D009CBAEB /* scientific_computing.1 */,
+				30C837F41828DEB400EC6813 /* sparse.h */,
 				3098F6241810377D009CBAEB /* main.cpp */,
 				3098F62D181037DF009CBAEB /* complex.h */,
+				30C837F51828E6C600EC6813 /* linbcg.h */,
+				308C19AF1828EFA600B86F16 /* asolve.h */,
 				3098F62E181037F1009CBAEB /* dynamicMatrix.h */,
 				3098F62F181037FF009CBAEB /* dynamicVector.h */,
 				3098F6301810381D009CBAEB /* gamma.h */,
