@@ -25,6 +25,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3079F2BF182A201F0058738D /* sor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sor.h; sourceTree = "<group>"; };
 		308C19AF1828EFA600B86F16 /* asolve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asolve.h; sourceTree = "<group>"; };
 		3098F6211810377D009CBAEB /* scientific-computing */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scientific-computing"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3098F6241810377D009CBAEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -75,6 +76,7 @@
 				3098F6261810377D009CBAEB /* scientific_computing.1 */,
 				30C837F41828DEB400EC6813 /* sparse.h */,
 				3098F6241810377D009CBAEB /* main.cpp */,
+				3079F2BF182A201F0058738D /* sor.h */,
 				3098F62D181037DF009CBAEB /* complex.h */,
 				30C837F51828E6C600EC6813 /* linbcg.h */,
 				308C19AF1828EFA600B86F16 /* asolve.h */,

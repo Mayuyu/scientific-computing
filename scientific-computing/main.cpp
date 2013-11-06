@@ -13,33 +13,131 @@
 #include "asolve.h"
 #include "sparse.h"
 #include <cmath>
+#include "sor.h"
 using namespace std;
 
+double pi =3.141592654;
 
+
+double sigma(double x, double y){
+    return 1.0;
+}
+
+double fxy(double x, double y){
+    return 2.0*pi*pi*sin(x*pi)*sin(y*pi);
+}
 
 int main(int argc, const char * argv[])
 {
-    dynamicVector<double> b(3,1.0) ,x(3,0.0);
-    sparseMat<double> a(3, 3, 7);
-    for (int i=0; i<7; i++) {
-        if(i%3==0) a.val(i)=2.0;
-        else a.val(i)=-1.0;
-        if(i%2==0 && i<3) a.row_ind(i)=0;
-        else if (i%2==0 && i>3) a.row_ind(i)=2;
-        else a.row_ind(i)=1;
+    const int N=4;
+    dynamicVector<double> f((N-1)*(N-1), 0.0),x((N-1)*(N-1), 1.0), y((N-1)*(N-1), 0.0);
+    double delta=1.0/N;
+    sparseMat<double> u((N-1)*(N-1),(N-1)*(N-1), (5*N-9)*(N-1));
+    int t=0;
+    for (int k=0; k<(N-1)*(N-1); k++) {
+        int i=k/(N-1)+1;
+        int j=k%(N-1)+1;
+        f(k)=-fxy(i*delta,j*delta)/(N*N);
+        y(k)=sin(pi*i*delta)*sin(pi*j*delta);
+        double s1,s2,s3,s4;
+        s1=sigma((i-0.5)*delta,j*delta);
+        s2=sigma(i*delta,(j-0.5)*delta);
+        s3=sigma(i*delta,(j+0.5)*delta);
+        s4=sigma((i+0.5)*delta,j*delta);
+        bool b=false;
+        if (i!=1) {
+            u.val(t)=s1;
+            u.row_ind(t)=k-N+1;
+            u.col_ptr(k)=t;
+            b=true;
+            t++;
+        }
+        if (j!=1) {
+            u.val(t)=s2;
+            u.row_ind(t)=k-1;
+            if (b==false) {
+                u.col_ptr(k)=t;
+                b=true;
+            }
+            t++;
+        }
+        u.val(t)=-(s1+s2+s3+s4);
+        u.row_ind(t)=k;
+        if (b==false) {
+            u.col_ptr(k)=t;
+            b=true;
+        }
+        t++;
+        if (j!=N-1) {
+            u.val(t)=s3;
+            u.row_ind(t)=k+1;
+            if (b==false) {
+                u.col_ptr(k)=t;
+                b=true;
+            }
+            t++;
+        }
+        if (i!=N-1) {
+            u.val(t)=s4;
+            u.row_ind(t)=k+N-1;
+            if (b==false) {
+                u.col_ptr(k)=t;
+                b=true;
+            }
+            t++;
+        }
     }
-    a.col_ptr(0)=0;a.col_ptr(1)=2;a.col_ptr(2)=5;a.col_ptr(3)=7;
-    cout << a.ax(b) << endl;
-    cout << a.val << endl;
-    cout << a.row_ind << endl;
-    cout << a.col_ptr << endl;
-    
+    u.col_ptr((N-1)*(N-1))=(5*N-9)*(N-1);
+
     int iter=0;
     double err=0.0;
-    sparseLinbcg<double> A(a);
-    A.solve(b, x, 2, 10e-4, 100, iter, err);
-    cout << x << endl;
+    sparseLinbcg<double> U(u);
+    U.solve(f, x, 1, 1.0e-6, 100, iter, err);
+cout << f <<endl;
+    cout << x <<endl;
+ //   cout << u.val << endl;
+ //   cout << t << endl;
+//    cout << delta << endl;
+    cout << y << endl;
+ //   cout << u.row_ind << endl;
+ //   cout << u.col_ptr << endl;
+    cout << x-y << endl;
+    cout << err << endl;
+    cout << iter << endl;
+    cout << 2.0*pi*pi/4.0 << endl;
+    
+/******************************************
+    
+                SOR
+    
+******************************************/
+    
+    dynamicMatrix<double> a(N+1, N+1, 0.0),b(N+1, N+1, 0.0),c(N+1, N+1, 0.0),d(N+1, N+1, 0.0),e(N+1, N+1, 0.0),f1(N+1, N+1, 0.0),x1(N+1, N+1, 0.0);
+    for (int i=1; i<N; i++) {
+        for (int j=1; j<N; j++) {
+            double s1,s2,s3,s4;
+            s1=sigma((i+0.5)*delta,j*delta);
+            s2=sigma((i-0.5)*delta,j*delta);
+            s3=sigma(i*delta,(j+0.5)*delta);
+            s4=sigma(i*delta,(j-0.5)*delta);
+
+            a(i,j)=s1;
+            b(i,j)=s2;
+            c(i,j)=s3;
+            d(i,j)=s4;
+            e(i,j)=-(s1+s2+s3+s4);
+            f1(i,j)=-fxy(i*delta,j*delta)/(N*N);
+        }
+    }
+    
+    sor(a, b, c, d, e, f1, x1, cos(pi/double(N)));
+    
+    cout << x1 << endl;
+    
+    
+    
     return 0;
+
 }
 
 

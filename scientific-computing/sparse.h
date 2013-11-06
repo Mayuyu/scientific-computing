@@ -49,7 +49,8 @@ dynamicVector<T> sparseMat<T>::ax(const dynamicVector<T> &x) const {
 }
 
 template<class T>
-dynamicVector<T> sparseMat<T>::atx(const dynamicVector<T> &x) const { dynamicVector<T> y(ncols);
+dynamicVector<T> sparseMat<T>::atx(const dynamicVector<T> &x) const {
+    dynamicVector<T> y(ncols);
     for (int i=0;i<ncols;i++) {
         y(i)=0.0;
         for (int j=col_ptr[i];j<col_ptr[i+1];j++)
