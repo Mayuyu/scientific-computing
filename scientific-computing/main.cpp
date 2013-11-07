@@ -14,23 +14,34 @@
 #include "sparse.h"
 #include <cmath>
 #include "sor.h"
+#include "stdlib.h"
+#include "ctime"
+
 using namespace std;
 
 double pi =3.141592654;
 
 
 double sigma(double x, double y){
-    return 1.0;
+ //  return 1.0;
+    if (sqrt((x-0.5)*(x-0.5)+(y-0.5)*(y-0.5))<0.25) {
+        return 0.1;
+    }
+    else
+        return 1.0;
 }
 
 double fxy(double x, double y){
-    return 2.0*pi*pi*sin(x*pi)*sin(y*pi);
+//    return 2.0*pi*pi*sin(x*pi)*sin(y*pi);
+    return exp(-10.0*(x-0.1)*(x-0.1)-10.0*(y-0.1)*(y-0.1));
 }
 
 int main(int argc, const char * argv[])
 {
-    const int N=4;
-    dynamicVector<double> f((N-1)*(N-1), 0.0),x((N-1)*(N-1), 1.0), y((N-1)*(N-1), 0.0);
+    const int N=100;
+    
+    
+    dynamicVector<double> f((N-1)*(N-1), 0.0),x((N-1)*(N-1), 0.0), y((N-1)*(N-1), 0.0);
     double delta=1.0/N;
     sparseMat<double> u((N-1)*(N-1),(N-1)*(N-1), (5*N-9)*(N-1));
     int t=0;
@@ -92,48 +103,72 @@ int main(int argc, const char * argv[])
     int iter=0;
     double err=0.0;
     sparseLinbcg<double> U(u);
-    U.solve(f, x, 1, 1.0e-6, 100, iter, err);
-cout << f <<endl;
-    cout << x <<endl;
- //   cout << u.val << endl;
- //   cout << t << endl;
-//    cout << delta << endl;
-    cout << y << endl;
- //   cout << u.row_ind << endl;
- //   cout << u.col_ptr << endl;
-    cout << x-y << endl;
-    cout << err << endl;
+    time_t start,finish;
+    double duration;
+    start=clock();
+    U.solve(f, x, 1, 10e-5, 10000, iter, err);
+    finish=clock();
+    duration=(double)(finish - start) / CLOCKS_PER_SEC;
     cout << iter << endl;
-    cout << 2.0*pi*pi/4.0 << endl;
+    cout << duration << endl;
+    cout << err << endl;
+    ofstream fout01("bcg2_0.2_100.txt");
+//    for (int i=0; i<N+1; i++) {
+//        if (i==0 || i==N ) {
+//            for (int j=0; j<N+1; j++) {
+//                fout01 << i*delta << " " << j*delta << " " << 0 << endl;
+//            }
+//        } else {
+//            for (int j=0; j<N+1; j++) {
+//                if (j==0 || j==N) {
+//                    fout01 << i*delta << " " << j*delta << " " << 0 << endl;
+//                }
+//                else
+//                fout01 << i*delta << " " << j*delta << " " << x[(i-1)*(N-1)+j-1] << endl;
+//                }
+//            }
+//    }
+//    fout01.close();
     
+        
+    
+
 /******************************************
     
                 SOR
     
 ******************************************/
     
-    dynamicMatrix<double> a(N+1, N+1, 0.0),b(N+1, N+1, 0.0),c(N+1, N+1, 0.0),d(N+1, N+1, 0.0),e(N+1, N+1, 0.0),f1(N+1, N+1, 0.0),x1(N+1, N+1, 0.0);
-    for (int i=1; i<N; i++) {
-        for (int j=1; j<N; j++) {
-            double s1,s2,s3,s4;
-            s1=sigma((i+0.5)*delta,j*delta);
-            s2=sigma((i-0.5)*delta,j*delta);
-            s3=sigma(i*delta,(j+0.5)*delta);
-            s4=sigma(i*delta,(j-0.5)*delta);
-
-            a(i,j)=s1;
-            b(i,j)=s2;
-            c(i,j)=s3;
-            d(i,j)=s4;
-            e(i,j)=-(s1+s2+s3+s4);
-            f1(i,j)=-fxy(i*delta,j*delta)/(N*N);
-        }
-    }
-    
-    sor(a, b, c, d, e, f1, x1, cos(pi/double(N)));
-    
-    cout << x1 << endl;
-    
+//    dynamicMatrix<double> a(N+1, N+1, 0.0),b(N+1, N+1, 0.0),c(N+1, N+1, 0.0),d(N+1, N+1, 0.0),e(N+1, N+1, 0.0),f1(N+1, N+1, 0.0),x1(N+1, N+1, 0.0);
+//    for (int i=1; i<N; i++) {
+//        for (int j=1; j<N; j++) {
+//            double s1,s2,s3,s4;
+//            s1=sigma((i+0.5)*delta,j*delta);
+//            s2=sigma((i-0.5)*delta,j*delta);
+//            s3=sigma(i*delta,(j+0.5)*delta);
+//            s4=sigma(i*delta,(j-0.5)*delta);
+//
+//            a(i,j)=s1;
+//            b(i,j)=s2;
+//            c(i,j)=s3;
+//            d(i,j)=s4;
+//            e(i,j)=-(s1+s2+s3+s4);
+//            f1(i,j)=-fxy(i*delta,j*delta)/(N*N);
+//        }
+//    }
+//    
+//    sor(a, b, c, d, e, f1, x1, cos(pi/double(N)));
+//    
+//    cout << x1 << endl;
+//    
+//    ofstream fout02("sor2_0.1_50.txt");
+//    for (int i=0; i<N+1; i++) {
+//            for (int j=0; j<N+1; j++) {
+//                fout02 << i*delta << " " << j*delta << " " << x1(i,j,"read") << endl;
+//            }
+//        }
+//    
+//    fout02.close();
     
     
     return 0;

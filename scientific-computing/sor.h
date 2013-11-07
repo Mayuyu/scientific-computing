@@ -15,7 +15,7 @@ template <class T>
 void sor(const dynamicMatrix<T> &a, const dynamicMatrix<T> &b, const dynamicMatrix<T> &c, const dynamicMatrix<T> &d, const dynamicMatrix<T> &e, const dynamicMatrix<T> &f, dynamicMatrix<T> &u, const double rjac)
 //Successive overrelaxation solution of equation (20.5.25) with Chebyshev acceleration. a, b, c, d, e, and f are input as the coefficients of the equation, each dimensioned to the grid size [0..jmax-1][0..jmax-1]. u is input as the initial guess to the solution, usually zero, and returns with the final value. rjac is input as the spectral radius of the Jacobi iteration, or an estimate of it.
 {
-    const int MAXITS=1000;
+    const int MAXITS=1000000;
     const double EPS=1.0e-13;
     double anormf=0.0,omega=1.0;
     int jmax=a.height();
