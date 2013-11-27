@@ -7,112 +7,321 @@
 //
 
 #include <iostream>
-#include <fstream>
-#include "gauss_wgts.h"
-#include "linbcg.h"
-#include "asolve.h"
-#include "sparse.h"
 #include <cmath>
-#include "sor.h"
-#include "stdlib.h"
-#include "ctime"
+#include "complex.h"
+#include "dynamicMatrix.h"
+#include "fftw3.h"
 
 using namespace std;
 
-double pi =3.141592654;
+/********************************************
+ 
+            Project 3
+ 
+ *******************************************/
 
-
-double sigma(double x, double y){
- //  return 1.0;
-    if (sqrt((x-0.5)*(x-0.5)+(y-0.5)*(y-0.5))<0.25) {
-        return 0.1;
-    }
-    else
-        return 1.0;
+double sq(double x) {
+    return x*x;
 }
 
-double fxy(double x, double y){
-//    return 2.0*pi*pi*sin(x*pi)*sin(y*pi);
-    return exp(-10.0*(x-0.1)*(x-0.1)-10.0*(y-0.1)*(y-0.1));
-}
-
-int main(int argc, const char * argv[])
-{
-    const int N=100;
-    
-    
-    dynamicVector<double> f((N-1)*(N-1), 0.0),x((N-1)*(N-1), 0.0), y((N-1)*(N-1), 0.0);
-    double delta=1.0/N;
-    sparseMat<double> u((N-1)*(N-1),(N-1)*(N-1), (5*N-9)*(N-1));
-    int t=0;
-    for (int k=0; k<(N-1)*(N-1); k++) {
-        int i=k/(N-1)+1;
-        int j=k%(N-1)+1;
-        f(k)=-fxy(i*delta,j*delta)/(N*N);
-        y(k)=sin(pi*i*delta)*sin(pi*j*delta);
-        double s1,s2,s3,s4;
-        s1=sigma((i-0.5)*delta,j*delta);
-        s2=sigma(i*delta,(j-0.5)*delta);
-        s3=sigma(i*delta,(j+0.5)*delta);
-        s4=sigma((i+0.5)*delta,j*delta);
-        bool b=false;
-        if (i!=1) {
-            u.val(t)=s1;
-            u.row_ind(t)=k-N+1;
-            u.col_ptr(k)=t;
-            b=true;
-            t++;
-        }
-        if (j!=1) {
-            u.val(t)=s2;
-            u.row_ind(t)=k-1;
-            if (b==false) {
-                u.col_ptr(k)=t;
-                b=true;
+template <class T>
+void Init(const dynamicVector<double> &w, const dynamicVector<T> &a, dynamicVector<T> &tau,dynamicVector<double> &c, const double e, const int m) {
+    int N,uk,qq;
+    double b,P;
+    N=a.dim()-1;
+//    b=log(1.0/e);
+//    qq=2*b*M_PI;
+//    qq=14;
+//    b=1.5629;
+    qq=5;
+    b=0.5993;
+    for (int j=-N/2; j<N/2+1; j++) {
+        c(j+N/2)=exp(b*sq(2.0*M_PI*j/(m*N)));
+    }
+    for (int k=0; k<N+1; k++) {
+        uk=nearbyint(m*w[k]);
+        for (int j=-qq; j<qq+1; j++) {
+            P=0.5*sqrt(1.0/(b*M_PI))*exp(-sq(m*w[k]-(uk+j))/(4.0*b));
+            if (uk+j+m*N/2<0) {
+                tau((uk+j+m*N/2)%(m*N)+m*N)=tau[(uk+j+m*N/2)%(m*N)+m*N]+P*a[k];
             }
-            t++;
-        }
-        u.val(t)=-(s1+s2+s3+s4);
-        u.row_ind(t)=k;
-        if (b==false) {
-            u.col_ptr(k)=t;
-            b=true;
-        }
-        t++;
-        if (j!=N-1) {
-            u.val(t)=s3;
-            u.row_ind(t)=k+1;
-            if (b==false) {
-                u.col_ptr(k)=t;
-                b=true;
+            else {
+                tau((uk+j+m*N/2)%(m*N))=tau[(uk+j+m*N/2)%(m*N)]+P*a[k];
             }
-            t++;
-        }
-        if (i!=N-1) {
-            u.val(t)=s4;
-            u.row_ind(t)=k+N-1;
-            if (b==false) {
-                u.col_ptr(k)=t;
-                b=true;
-            }
-            t++;
         }
     }
-    u.col_ptr((N-1)*(N-1))=(5*N-9)*(N-1);
+}
 
-    int iter=0;
-    double err=0.0;
-    sparseLinbcg<double> U(u);
-    time_t start,finish;
-    double duration;
+template <class T>
+dynamicVector<T> convert(const dynamicVector<T> &x) {
+    int n=x.dim();
+    dynamicVector<T> tmp(n, 0);
+    for (int i=0; i<n; i++) {
+        if (i<n/2) {
+            tmp(i)=x[i+n/2];
+        } else {
+            tmp(i)=x[i-n/2];
+        }
+    }
+    return tmp;
+}
+
+template <class T>
+const double err_infty(const dynamicVector<T>& f, const dynamicVector<T>& a) {
+    int n=a.dim();
+    double sum=0.0;
+    for (int i=0; i<n; i++) {
+        sum+=sqrt(abs2(a[i]));
+    }
+    return absMax(f)/sum;
+}
+
+template <class T>
+const double err2(const dynamicVector<T>& f1, const dynamicVector<T>& f) {
+    int n=f.dim();
+    double sum1=0.0, sum2=0.0;
+    for (int i=0; i<n; i++) {
+        sum1+=abs2(f1[i]-f[i]);
+        sum2+=abs2(f[i]);
+    }
+    return sqrt(sum1/sum2);
+}
+
+int main(int argc, const char * argv[]) {
+    clock_t start, end, start1, end1,start2, end2, start3, end3;
+    const int N=64, m=2;
+    dynamicVector<complex> a(N+1,0.),tau(m*N,0.),f(N+1,0.);
+    dynamicVector<double> w(N+1,0.),c(N+1,0.);
+    complex I(0.,1.);
+    srand((unsigned)time(NULL));
+    for (int i=0; i<N+1; i++) {
+        w(i)=(double)(rand()/(double)(RAND_MAX/N))-0.5*N;
+        complex random((double)(rand()/(double)RAND_MAX),(double)(rand()/(double)RAND_MAX));
+        a(i)=random;
+    }
+    
+    /**************************
+     
+        Direct DFT
+     
+     *************************/
+    
     start=clock();
-    U.solve(f, x, 1, 10e-5, 10000, iter, err);
-    finish=clock();
-    duration=(double)(finish - start) / CLOCKS_PER_SEC;
-    cout << iter << endl;
-    cout << duration << endl;
-    cout << err << endl;
-    ofstream fout01("bcg2_0.2_100.txt");
+    for (int i=0; i<N+1; i++) {
+        complex sum=0;
+        for (int j=0; j<N+1; j++) {
+            double tmp=w[j]*2.0*M_PI*(i-N/2)/N;
+            complex tmpc(cos(tmp),sin(tmp));
+            sum+=a[j]*tmpc;
+        }
+        f(i)=sum;
+    }
+    end=clock();
+    cout << "Direct method takes " << (double)(end-start)/CLOCKS_PER_SEC << " second." << endl;
+    
+    /*************************
+     
+        Initial
+     
+     ************************/
+    
+    start1=clock();
+    Init(w, a, tau, c,10e-6, m);
+    end1=clock();
+    cout << "Initial takes " << (double)(end1-start1)/CLOCKS_PER_SEC << " second." << endl;
+
+    /**********************
+     
+        FFT vesion 1
+     
+     *********************/
+    
+    dynamicVector<complex> f1(N+1,0.),tmp(m*N,0.), tmp1(m*N,0.), tmp2(m*N,0.);
+    tmp1=convert(tau);
+    start2=clock();
+    tmp2=FFT(1, tmp1, I);
+    end2=clock();
+    cout << "FFT vesion 1 takes " << (double)(end2-start2)/CLOCKS_PER_SEC << " second." << endl;
+    tmp=convert(m*N*tmp2);
+    for (int i=0; i<N+1; i++) {
+        f1(i)=c[i]*tmp[i+(m-1)*N/2];
+    }
+    cout << "The err_infty for FFT version 1: " << err_infty(f1-f, a) << endl;
+    cout << "The error2 for FFT version 1: " << err2(f1, f) << endl;
+    
+    /**********************
+     
+     FFT vesion FFTW
+     
+     *********************/
+    
+    dynamicVector<complex> tw(m*N,0.),f1w(m*N,0.),f2w(m*N,0.),fw(N+1,0.);
+    tw=convert(tau);
+    fftw_complex *in, *out;
+    fftw_plan p;
+    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*(m*N));
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*(m*N));
+    for (int i=0; i<m*N; i++) {
+        in[i][0]=tw[i].re();
+        in[i][1]=tw[i].im();
+    }
+    p = fftw_plan_dft_1d(m*N, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    start3=clock();
+    fftw_execute(p); /* repeat as needed */
+    for (int i=0; i<m*N; i++) {
+        complex tmp(out[i][0],out[i][1]);
+        f1w(i)=tmp;
+    }
+    end3=clock();
+    cout << "FFTw takes " << (double)(end3-start3)/CLOCKS_PER_SEC << " second." << endl;
+    fftw_destroy_plan(p);
+    fftw_free(in); fftw_free(out);
+    f2w=convert(f1w);
+    for (int i=0; i<N+1; i++) {
+        fw(i)=c[i]*f2w[i+(m-1)*N/2];
+    }
+    cout << "The err_infty for FFTw: " << err_infty(fw-f, a) << endl;
+    cout << "The error2 for FFTw: " << err2(fw, f) << endl;
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**************************************************
+ 
+            Project 2
+ 
+ *************************************************/
+
+//double pi =3.141592654;
+//
+//
+//double sigma(double x, double y){
+// //  return 1.0;
+//    if (sqrt((x-0.5)*(x-0.5)+(y-0.5)*(y-0.5))<0.25) {
+//        return 0.1;
+//    }
+//    else
+//        return 1.0;
+//}
+//
+//double fxy(double x, double y){
+////    return 2.0*pi*pi*sin(x*pi)*sin(y*pi);
+//    return exp(-10.0*(x-0.1)*(x-0.1)-10.0*(y-0.1)*(y-0.1));
+//}
+//
+//int main(int argc, const char * argv[])
+//{
+//    const int N=100;
+//    
+//    
+//    dynamicVector<double> f((N-1)*(N-1), 0.0),x((N-1)*(N-1), 0.0), y((N-1)*(N-1), 0.0);
+//    double delta=1.0/N;
+//    sparseMat<double> u((N-1)*(N-1),(N-1)*(N-1), (5*N-9)*(N-1));
+//    int t=0;
+//    for (int k=0; k<(N-1)*(N-1); k++) {
+//        int i=k/(N-1)+1;
+//        int j=k%(N-1)+1;
+//        f(k)=-fxy(i*delta,j*delta)/(N*N);
+//        y(k)=sin(pi*i*delta)*sin(pi*j*delta);
+//        double s1,s2,s3,s4;
+//        s1=sigma((i-0.5)*delta,j*delta);
+//        s2=sigma(i*delta,(j-0.5)*delta);
+//        s3=sigma(i*delta,(j+0.5)*delta);
+//        s4=sigma((i+0.5)*delta,j*delta);
+//        bool b=false;
+//        if (i!=1) {
+//            u.val(t)=s1;
+//            u.row_ind(t)=k-N+1;
+//            u.col_ptr(k)=t;
+//            b=true;
+//            t++;
+//        }
+//        if (j!=1) {
+//            u.val(t)=s2;
+//            u.row_ind(t)=k-1;
+//            if (b==false) {
+//                u.col_ptr(k)=t;
+//                b=true;
+//            }
+//            t++;
+//        }
+//        u.val(t)=-(s1+s2+s3+s4);
+//        u.row_ind(t)=k;
+//        if (b==false) {
+//            u.col_ptr(k)=t;
+//            b=true;
+//        }
+//        t++;
+//        if (j!=N-1) {
+//            u.val(t)=s3;
+//            u.row_ind(t)=k+1;
+//            if (b==false) {
+//                u.col_ptr(k)=t;
+//                b=true;
+//            }
+//            t++;
+//        }
+//        if (i!=N-1) {
+//            u.val(t)=s4;
+//            u.row_ind(t)=k+N-1;
+//            if (b==false) {
+//                u.col_ptr(k)=t;
+//                b=true;
+//            }
+//            t++;
+//        }
+//    }
+//    u.col_ptr((N-1)*(N-1))=(5*N-9)*(N-1);
+//
+//    int iter=0;
+//    double err=0.0;
+//    sparseLinbcg<double> U(u);
+//    time_t start,finish;
+//    double duration;
+//    start=clock();
+//    U.solve(f, x, 1, 10e-5, 10000, iter, err);
+//    finish=clock();
+//    duration=(double)(finish - start) / CLOCKS_PER_SEC;
+//    cout << iter << endl;
+//    cout << duration << endl;
+//    cout << err << endl;
+//    ofstream fout01("bcg2_0.2_100.txt");
 //    for (int i=0; i<N+1; i++) {
 //        if (i==0 || i==N ) {
 //            for (int j=0; j<N+1; j++) {
@@ -169,31 +378,20 @@ int main(int argc, const char * argv[])
 //        }
 //    
 //    fout02.close();
-    
-    
-    return 0;
-
-}
-
-
+//    
+//    
+//    return 0; 
+//
+//}
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**************************************************
+ 
+                Project 1
+ 
+ *************************************************/
 
 //template <class T>
 //T harmonic_F(T q, T a, T r, T r_s, T eta, T epsilon_o, T epsilon_i, int &i) {

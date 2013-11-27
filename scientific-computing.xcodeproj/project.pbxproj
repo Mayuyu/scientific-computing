@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3098F6251810377D009CBAEB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3098F6241810377D009CBAEB /* main.cpp */; };
 		3098F6271810377D009CBAEB /* scientific_computing.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3098F6261810377D009CBAEB /* scientific_computing.1 */; };
+		30C911EA1844D2E300FFEA46 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 30C911E91844D2E300FFEA46 /* libfftw3.a */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,6 +42,8 @@
 		3098F63518103865009CBAEB /* polynomial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = polynomial.h; sourceTree = "<group>"; };
 		30C837F41828DEB400EC6813 /* sparse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sparse.h; sourceTree = "<group>"; };
 		30C837F51828E6C600EC6813 /* linbcg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linbcg.h; sourceTree = "<group>"; };
+		30C911E81844D1FF00FFEA46 /* fftw3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fftw3.h; sourceTree = "<group>"; };
+		30C911E91844D2E300FFEA46 /* libfftw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfftw3.a; path = "scientific-computing/libfftw3.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,6 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30C911EA1844D2E300FFEA46 /* libfftw3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,6 +61,7 @@
 		3098F6181810377D009CBAEB = {
 			isa = PBXGroup;
 			children = (
+				30C911E91844D2E300FFEA46 /* libfftw3.a */,
 				3098F6231810377D009CBAEB /* scientific-computing */,
 				3098F6221810377D009CBAEB /* Products */,
 			);
@@ -78,6 +83,7 @@
 				3098F6241810377D009CBAEB /* main.cpp */,
 				3079F2BF182A201F0058738D /* sor.h */,
 				3098F62D181037DF009CBAEB /* complex.h */,
+				30C911E81844D1FF00FFEA46 /* fftw3.h */,
 				30C837F51828E6C600EC6813 /* linbcg.h */,
 				308C19AF1828EFA600B86F16 /* asolve.h */,
 				3098F62E181037F1009CBAEB /* dynamicMatrix.h */,
@@ -221,6 +227,10 @@
 		3098F62B1810377D009CBAEB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/mazheng/Documents/scientific-computing/scientific-computing",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -229,6 +239,10 @@
 		3098F62C1810377D009CBAEB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/mazheng/Documents/scientific-computing/scientific-computing",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

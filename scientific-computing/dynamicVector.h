@@ -24,6 +24,9 @@ const T fabs(const T&a) {
     return a > 0 ? a: -a;
 }
 
+const double fabs(const complex& a) {
+    return sqrt(abs2(a));
+}
 
 
 template<class T> class dynamicVector{
@@ -207,8 +210,8 @@ const T min(const dynamicVector<T>&u){
 }  //  compute the min value of vector u
 
 template<class T>
-const T absMax(const dynamicVector<T>&u){
-    T temp = fabs(u[0]);
+const double absMax(const dynamicVector<T>&u){
+    double temp = fabs(u[0]);
     for(int i = 0; i<u.dim(); i++)
         temp = temp >= fabs(u[i]) ? temp: fabs(u[i]);
     return temp;
