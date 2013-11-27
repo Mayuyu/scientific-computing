@@ -146,6 +146,7 @@ int main(int argc, const char * argv[]) {
     for (int i=0; i<N+1; i++) {
         f1(i)=c[i]*tmp[i+(m-1)*N/2];
     }
+    cout << f1 << endl;
     cout << "The err_infty for FFT version 1: " << err_infty(f1-f, a) << endl;
     cout << "The error2 for FFT version 1: " << err2(f1, f) << endl;
     
