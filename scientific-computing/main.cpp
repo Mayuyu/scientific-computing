@@ -31,10 +31,10 @@ void Init(const dynamicVector<double> &w, const dynamicVector<T> &a, dynamicVect
     N=a.dim()-1;
 //    b=log(1.0/e);
 //    qq=2*b*M_PI;
-//    qq=14;
-//    b=1.5629;
-    qq=5;
-    b=0.5993;
+    qq=14;
+    b=1.5629;
+//    qq=5;
+//    b=0.5993;
     for (int j=-N/2; j<N/2+1; j++) {
         c(j+N/2)=exp(b*sq(2.0*M_PI*j/(m*N)));
     }
