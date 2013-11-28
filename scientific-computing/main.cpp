@@ -146,7 +146,6 @@ int main(int argc, const char * argv[]) {
     for (int i=0; i<N+1; i++) {
         f1(i)=c[i]*tmp[i+(m-1)*N/2];
     }
-    cout << f1 << endl;
     cout << "The err_infty for FFT version 1: " << err_infty(f1-f, a) << endl;
     cout << "The error2 for FFT version 1: " << err2(f1, f) << endl;
     
@@ -169,12 +168,12 @@ int main(int argc, const char * argv[]) {
     p = fftw_plan_dft_1d(m*N, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
     start3=clock();
     fftw_execute(p); /* repeat as needed */
+    end3=clock();
+    cout << "FFTw takes " << (double)(end3-start3)/CLOCKS_PER_SEC << " second." << endl;
     for (int i=0; i<m*N; i++) {
         complex tmp(out[i][0],out[i][1]);
         f1w(i)=tmp;
     }
-    end3=clock();
-    cout << "FFTw takes " << (double)(end3-start3)/CLOCKS_PER_SEC << " second." << endl;
     fftw_destroy_plan(p);
     fftw_free(in); fftw_free(out);
     f2w=convert(f1w);
