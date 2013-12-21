@@ -95,6 +95,21 @@ const dynamicMatrix<T> operator-(const dynamicMatrix<T>&u){
 }  //  negative of a dynamicMatrix
 
 template<class T>
+const dynamicMatrix<T> operator*(const dynamicMatrix<T>&u, const dynamicMatrix<T>&v){
+    dynamicMatrix<T> tmp(u.height(),v.width(),0.0);
+    for (int i=0; i<tmp.height(); i++) {
+        for (int j=0; j<tmp.width(); j++) {
+            T sum=0.0;
+            for (int k=0; k<u.width(); k++) {
+                sum+=u(i,k,"read")*v(k,j,"read");
+            }
+            tmp(i,j)=sum;
+        }
+    }
+    return tmp;
+}  //  dynamicMatrix times dynamicMatrix
+
+template<class T>
 ostream& operator <<(ostream& out, const dynamicMatrix<T>&v){
     for (int i = 0; i < v.height(); i++){
         for (int j = 0; j < v.width(); j++){
