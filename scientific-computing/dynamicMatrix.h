@@ -292,5 +292,22 @@ int solverSOR(const dynamicMatrix<T>&d,const dynamicVector<T>&f, dynamicVector<T
     return i;    // return the number of iteration
 }//  solving d*x=f approximately by SOR iterations
 
+template <class T>
+void tridag(const dynamicVector<T> &a, const dynamicVector<T> &b, const dynamicVector<T> &c, const dynamicVector<T> &r, dynamicVector<T> &u) {
+    int j,n=a.dim();
+    T bet;
+    dynamicVector<T> gam(n);        //One vector of workspace, gam, is needed.
+    if (b[0] == 0.0) throw("Error 1 in tridag");
+    u(0)=r[0]/(bet=b[0]);
+    for (j=1;j<n;j++) {             //Decomposition and forward substitution.
+        gam(j)=c[j-1]/bet;
+        bet=b[j]-a[j]*gam[j];
+        if (bet == 0.0) throw("Error 2 in tridag");
+        u(j)=(r[j]-a[j]*u[j-1])/bet;
+    }
+    for (j=(n-2);j>=0;j--) {
+        u(j) -= gam[j+1]*u[j+1];        //Backsubstitution.
+    }
+}
 
 #endif

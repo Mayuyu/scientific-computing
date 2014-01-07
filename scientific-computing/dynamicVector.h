@@ -146,10 +146,10 @@ const dynamicVector<T> operator*(const T& a, const dynamicVector<T>&u){
     return dynamicVector<T>(u) *= a;
 }  //  T times dynamicVector
 
-template<class T>
-const dynamicVector<T> operator*(double a, const dynamicVector<T>&u){
-    return dynamicVector<T>(u) *= a;
-}  //  scalar times dynamicVector
+//template<class T>
+//const dynamicVector<T> operator*(double a, const dynamicVector<T>&u){
+//    return dynamicVector<T>(u) *= a;
+//}  //  scalar times dynamicVector
 
 template<class T>
 const dynamicVector<T> operator/(const dynamicVector<T>&u, const T& a){
@@ -209,6 +209,7 @@ const T min(const dynamicVector<T>&u){
     return temp;
 }  //  compute the min value of vector u
 
+
 template<class T>
 const double absMax(const dynamicVector<T>&u){
     double temp = fabs(u[0]);
@@ -216,6 +217,15 @@ const double absMax(const dynamicVector<T>&u){
         temp = temp >= fabs(u[i]) ? temp: fabs(u[i]);
     return temp;
 }  //  compute the max abs value of vector u
+
+template <class T>
+const double norm1(const dynamicVector<T>&u) {
+    T sum=0.0;
+    for (int i=0; i<u.dim(); i++) {
+        sum+=fabs(u[i]);
+    }
+    return sum;
+}
 
 /*************************
  

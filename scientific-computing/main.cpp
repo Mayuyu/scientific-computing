@@ -10,60 +10,130 @@
 #include <cmath>
 #include "complex.h"
 #include "dynamicMatrix.h"
+#include "dynamicVector.h"
 #include "fftw3.h"
 #include <fstream>
 
 using namespace std;
 
 
+/***********************************
 
-/*************************************
- 
-    Project 4
- 
- *******************************/
+    Optimization Project
 
+**********************************/
+
+
+const int N=1000, M=4;
+const double L=1000.0, h=L/N, beta=1.2, A=8.0;
+double gam=0.01,sigma;
+dynamicVector<double> I(N+1,1.0), z(M,1.0), bet(N, -1.0), a(M, 64.0),J(N+1,0.0001);
+dynamicVector<double> n(M,1);
+dynamicVector<double> alp(N,2.0), phi(N+1,0.0), lambda(M,5.0), r(M,1.0), f(N+1, 0.0), xi(N+1,0.0);
+dynamicVector<dynamicVector<double> > C(M,J);
 
 template <class T>
-void split(const T& u, const T& k, const T& rho, dynamicMatrix<T>& ap, dynamicMatrix<T>& am) {
-    dynamicMatrix<T> ip(2,2,0.0), p(2,2,0.0), eigp(2,2,0.0), eigm(2,2,0.0);
-    T t1=sqrt(k/rho), t2=sqrt(k*rho);
-    ip(0,0)=0.5; ip(0,1)=0.5; ip(1,0)=0.5/t2; ip(1,1)=-0.5/t2;
-    p(0,0)=1.0; p(0,1)=t2; p(1,0)=1.0; p(1,1)=-t2;
-    eigp(0,0)=(u+t1)>0 ? (u+t1):0.0; eigp(1,1)=(u-t1)>0 ? (u-t1):0.0;
-    eigm(0,0)=(u+t1)<0 ? (u+t1):0.0; eigm(1,1)=(u-t1)<0 ? (u-t1):0.0;
-    ap=ip*eigp*p;
-    am=ip*eigm*p;
+T sum(const dynamicVector<T>& u) {
+    T sum=0.0;
+    for (int i=0; i<u.dim(); i++) {
+        sum+=u[i];
+    }
+    return sum;
+}
+
+template <class T>
+dynamicVector<T> sum(const dynamicVector<dynamicVector<T> >& c) {
+    dynamicVector<T> tmp(N+1,0.0);
+    for (int i=0; i<c.dim(); i++) {
+        tmp+=a[i]*c[i];
+    }
+    return tmp;
+}
+
+template <class T>
+dynamicVector<T> log(const dynamicVector<T>& u) {
+    dynamicVector<T> tmp(u);
+    for (int i=0; i<u.dim(); i++) {
+        tmp(i)=log(u[i]);
+    }
+    return tmp;
+}
+
+dynamicVector<double> theta(int i) {
+    return -(a[i]/A)*log(I-sum(C))+log(C[i])+z[i]*(lambda[i]*I+phi)+r[i]*z[i]*z[i]*(h*sum(C[i])-n[i])*I;
 }
 
 
-
 int main(int argc, const char * argv[]) {
-    const int N=100, T=200;
-    double u0=1.0, k=1.0, rho=1.0, t_delta=1.0/T, x_delta=1./N, r;
-    r=t_delta/x_delta;
-    dynamicMatrix<double> ap(2,2,0.0), am(2,2,0.0);
-    dynamicVector<double> u(N+1,0.0), p(N+1,0.0), utmp(N+1,0.0), ptmp(N+1,0.0);
-    for (int i=0; i<N+1; i++) {
-        if (i*x_delta>0.4 && i*x_delta<0.6) {
-            p(i)=1.0;
+
+    n(0)=3;
+    n(1)=2;
+    n(2)=1;
+    n(3)=0.001;
+    z(0)=-1.;
+    z(1)=-2.;
+    z(2)=-3.;
+    z(3)=1.;
+    a(0)=64;
+    a(1)=125;
+    a(2)=216;
+    a(3)=64;
+    sigma=-n(1)*z(1)-n(0)*z(0)-n(2)*z(2)-n(3)*z(3);
+    alp(0)=1.0;
+
+    int p=0;
+    while (p<100) {
+    // step 1
+    f=0.;
+    for (int i=0; i<M; i++) {
+        f+=C[i]*z[i];
+    }
+    f(0)=sigma/h;
+
+    tridag(bet, alp, bet, f*h*h, phi);
+
+    // Newton's method
+    int k=0;
+    double err=1.0;
+    while (err>1e-3&& k<100) {
+        dynamicVector<dynamicVector<double> > c;
+        c=C;
+        for (int i=0; i<M; i++) {
+            for (int m=0; m<xi.dim(); m++) {
+                xi(m)=1.0/(1.0/c[i][m]+a[i]*a[i]/(A-A*sum(c)[m]));
+            }
+            bool y=true;
+            gam=1.0;
+            while (y) {
+                y=false;
+
+            C(i)=c[i]-gam*(xi|(theta(i)-I*(r[i]*z[i]*z[i]*h*sum(theta(i)|xi))/(1+r[i]*z[i]*z[i]*h*sum(xi))));
+                if (min(C(i))<0||min(I-sum(C))<0 ) {
+                    C(i)=c[i];
+                    y=true;
+                    gam*=0.5;
+                }
+            }
         }
-    }
-    split(u0, k, rho, ap, am);
-    for (int t=0; t<T+1; t++) {
-        for (int i=0; i<N+1; i++) {
-            ptmp(i)=p(i)-r*(ap(0,0)*(p[i]-p[(i+N)%(N+1)])+ap(0,1)*(u[i]-u[(i+N)%(N+1)])+am(0,0)*(p[(i+1)%(N+1)]-p[i])+am(0,1)*(u[(i+1)%(N+1)]-u[i]));
-            utmp(i)=u(i)-r*(ap(1,0)*(p[i]-p[(i+N)%(N+1)])+ap(1,1)*(u[i]-u[(i+N)%(N+1)])+am(1,0)*(p[(i+1)%(N+1)]-p[i])+am(1,1)*(u[(i+1)%(N+1)]-u[i]));
+        err=0.0;
+        for (int i=0; i<M; i++) {
+            err+=norm1(theta(i));
         }
-        p=ptmp;
-        u=utmp;
+        k++;
     }
-    ofstream fout1("p4.txt");
-    for (int i=0; i<N+1; i++) {
-        fout1 << i*x_delta << " " << p[i] << endl;
+        for (int i=0; i<lambda.dim(); i++) {
+            lambda(i)+=r[i]*z[i]*(h*sum(C[i])-n[i]);
+        }
+        r=beta*r;
+        p++;
     }
+
+
+    ofstream fout1("test.txt");
+        for (int i=0; i<phi.dim(); i++) {
+            fout1 << i*h << " " << phi[i] << "  "<<C[0][i]<<"  "<<C[1][i]<<"  "<<C[2][i]<<"   "<<C[3][i]<<endl;
+        }
     fout1.close();
-    cout << p << endl;
     return 0;
 }
 
@@ -88,11 +158,119 @@ int main(int argc, const char * argv[]) {
 
 
 
-///********************************************
-// 
-//            Project 3
-// 
-// *******************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*************************************
+
+    Project 4
+
+ *******************************/
+
+
+//template <class T>
+//void split(const T& u, const T& k, const T& rho, dynamicMatrix<T>& ap, dynamicMatrix<T>& am) {
+//    dynamicMatrix<T> ip(2,2,0.0), p(2,2,0.0), eigp(2,2,0.0), eigm(2,2,0.0);
+//    T t1=sqrt(k/rho), t2=sqrt(k*rho);
+//    ip(0,0)=0.5; ip(0,1)=0.5; ip(1,0)=0.5/t2; ip(1,1)=-0.5/t2;
+//    p(0,0)=1.0; p(0,1)=t2; p(1,0)=1.0; p(1,1)=-t2;
+//    eigp(0,0)=(u+t1)>0 ? (u+t1):0.0; eigp(1,1)=(u-t1)>0 ? (u-t1):0.0;
+//    eigm(0,0)=(u+t1)<0 ? (u+t1):0.0; eigm(1,1)=(u-t1)<0 ? (u-t1):0.0;
+//    ap=ip*eigp*p;
+//    am=ip*eigm*p;
+//}
+//
+//
+//
+//int main(int argc, const char * argv[]) {
+//    const int N=100, T=200;
+//    double u0=1.0, k=1.0, rho=1.0, t_delta=1.0/T, x_delta=1./N, r;
+//    r=t_delta/x_delta;
+//    dynamicMatrix<double> ap(2,2,0.0), am(2,2,0.0);
+//    dynamicVector<double> u(N+1,0.0), p(N+1,0.0), utmp(N+1,0.0), ptmp(N+1,0.0);
+//    for (int i=0; i<N+1; i++) {
+//        if (i*x_delta>0.4 && i*x_delta<0.6) {
+//            p(i)=1.0;
+//        }
+//    }
+//    split(u0, k, rho, ap, am);
+//    for (int t=0; t<T+1; t++) {
+//        for (int i=0; i<N+1; i++) {
+//            ptmp(i)=p(i)-r*(ap(0,0)*(p[i]-p[(i+N)%(N+1)])+ap(0,1)*(u[i]-u[(i+N)%(N+1)])+am(0,0)*(p[(i+1)%(N+1)]-p[i])+am(0,1)*(u[(i+1)%(N+1)]-u[i]));
+//            utmp(i)=u(i)-r*(ap(1,0)*(p[i]-p[(i+N)%(N+1)])+ap(1,1)*(u[i]-u[(i+N)%(N+1)])+am(1,0)*(p[(i+1)%(N+1)]-p[i])+am(1,1)*(u[(i+1)%(N+1)]-u[i]));
+//        }
+//        p=ptmp;
+//        u=utmp;
+//    }
+//    ofstream fout1("p4.txt");
+//    for (int i=0; i<N+1; i++) {
+//        fout1 << i*x_delta << " " << p[i] << endl;
+//    }
+//    fout1.close();
+//    cout << p << endl;
+//    return 0;
+//}
+
+
+/********************************************
+
+            Project 3
+
+ *******************************************/
 //
 //double sq(double x) {
 //    return x*x;
@@ -173,13 +351,13 @@ int main(int argc, const char * argv[]) {
 //        complex random((double)(rand()/(double)RAND_MAX),(double)(rand()/(double)RAND_MAX));
 //        a(i)=random;
 //    }
-//    
+//
 //    /**************************
-//     
+//
 //        Direct DFT
-//     
+//
 //     *************************/
-//    
+//
 //    start=clock();
 //    for (int i=0; i<N+1; i++) {
 //        complex sum=0;
@@ -192,24 +370,24 @@ int main(int argc, const char * argv[]) {
 //    }
 //    end=clock();
 //    cout << "Direct method takes " << (double)(end-start)/CLOCKS_PER_SEC << " second." << endl;
-//    
+//
 //    /*************************
-//     
+//
 //        Initial
-//     
+//
 //     ************************/
-//    
+//
 //    start1=clock();
 //    Init(w, a, tau, c,10e-6, m);
 //    end1=clock();
 //    cout << "Initial takes " << (double)(end1-start1)/CLOCKS_PER_SEC << " second." << endl;
 //
 //    /**********************
-//     
+//
 //        FFT vesion 1
-//     
+//
 //     *********************/
-//    
+//
 //    dynamicVector<complex> f1(N+1,0.),tmp(m*N,0.), tmp1(m*N,0.), tmp2(m*N,0.);
 //    tmp1=convert(tau);
 //    start2=clock();
@@ -222,13 +400,13 @@ int main(int argc, const char * argv[]) {
 //    }
 //    cout << "The err_infty for FFT version 1: " << err_infty(f1-f, a) << endl;
 //    cout << "The error2 for FFT version 1: " << err2(f1, f) << endl;
-//    
+//
 //    /**********************
-//     
+//
 //     FFT vesion FFTW
-//     
+//
 //     *********************/
-//    
+//
 //    dynamicVector<complex> tw(m*N,0.),f1w(m*N,0.),f2w(m*N,0.),fw(N+1,0.);
 //    tw=convert(tau);
 //    fftw_complex *in, *out;
@@ -262,9 +440,9 @@ int main(int argc, const char * argv[]) {
 
 
 /**************************************************
- 
+
             Project 2
- 
+
  *************************************************/
 
 //double pi =3.141592654;
@@ -287,8 +465,8 @@ int main(int argc, const char * argv[]) {
 //int main(int argc, const char * argv[])
 //{
 //    const int N=100;
-//    
-//    
+//
+//
 //    dynamicVector<double> f((N-1)*(N-1), 0.0),x((N-1)*(N-1), 0.0), y((N-1)*(N-1), 0.0);
 //    double delta=1.0/N;
 //    sparseMat<double> u((N-1)*(N-1),(N-1)*(N-1), (5*N-9)*(N-1));
@@ -377,16 +555,16 @@ int main(int argc, const char * argv[]) {
 //            }
 //    }
 //    fout01.close();
-    
-        
-    
+
+
+
 
 /******************************************
-    
+
                 SOR
-    
+
 ******************************************/
-    
+
 //    dynamicMatrix<double> a(N+1, N+1, 0.0),b(N+1, N+1, 0.0),c(N+1, N+1, 0.0),d(N+1, N+1, 0.0),e(N+1, N+1, 0.0),f1(N+1, N+1, 0.0),x1(N+1, N+1, 0.0);
 //    for (int i=1; i<N; i++) {
 //        for (int j=1; j<N; j++) {
@@ -404,22 +582,22 @@ int main(int argc, const char * argv[]) {
 //            f1(i,j)=-fxy(i*delta,j*delta)/(N*N);
 //        }
 //    }
-//    
+//
 //    sor(a, b, c, d, e, f1, x1, cos(pi/double(N)));
-//    
+//
 //    cout << x1 << endl;
-//    
+//
 //    ofstream fout02("sor2_0.1_50.txt");
 //    for (int i=0; i<N+1; i++) {
 //            for (int j=0; j<N+1; j++) {
 //                fout02 << i*delta << " " << j*delta << " " << x1(i,j,"read") << endl;
 //            }
 //        }
-//    
+//
 //    fout02.close();
-//    
-//    
-//    return 0; 
+//
+//
+//    return 0;
 //
 //}
 
@@ -427,9 +605,9 @@ int main(int argc, const char * argv[]) {
 
 
 /**************************************************
- 
+
                 Project 1
- 
+
  *************************************************/
 
 //template <class T>
