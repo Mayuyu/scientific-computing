@@ -28,6 +28,7 @@
 /* Begin PBXFileReference section */
 		3079F2BF182A201F0058738D /* sor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sor.h; sourceTree = "<group>"; };
 		308C19AF1828EFA600B86F16 /* asolve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asolve.h; sourceTree = "<group>"; };
+		3098A387187C2B380024AB52 /* point.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = point.h; sourceTree = "<group>"; };
 		3098F6211810377D009CBAEB /* scientific-computing */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scientific-computing"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3098F6241810377D009CBAEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3098F6261810377D009CBAEB /* scientific_computing.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = scientific_computing.1; sourceTree = "<group>"; };
@@ -93,6 +94,7 @@
 				3098F6321810383F009CBAEB /* list.h */,
 				3098F63318103852009CBAEB /* matrix.h */,
 				3098F63518103865009CBAEB /* polynomial.h */,
+				3098A387187C2B380024AB52 /* point.h */,
 				3098F6341810385B009CBAEB /* vector.h */,
 			);
 			path = "scientific-computing";

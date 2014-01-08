@@ -8,13 +8,102 @@
 
 #include <iostream>
 #include <cmath>
-#include "complex.h"
-#include "dynamicMatrix.h"
+#include "point.h"
 #include "dynamicVector.h"
 #include "fftw3.h"
 #include <fstream>
+#include <ctime>
 
 using namespace std;
+
+
+
+/**********************************
+ 
+          Project 5
+ 
+**********************************/
+
+
+
+
+template <class T,class S>
+T energy(int j, const dynamicVector<S>& r, const T& I) {
+    T sum=0;
+    for (int i=0; i<r.dim(); i++) {
+        if (i!=j) {
+            sum+=1.0/abs(r[i]-r[j]);
+        }
+    }
+    return sum;
+}
+
+
+int main(int argc, const char * argv[]) {
+    const int N=2;
+    int move=0;
+    const double beta_max=10000;
+    double beta=0.1, hbox=0.5, ratio=0.0, I=1.0;
+    dynamicVector<point<double> > r(N,1.0);
+    srand((unsigned)time(NULL));
+    
+    
+    while (beta<beta_max) {
+        for (int k=0; k<100*N; k++) {
+            int j=rand()%N;
+            double E_old=energy(j, r, I), E_new;
+            point<double> dr(0.0,0.0,0.0), rn(0.0,0.0,0.0),rtmp(r[j]);
+            do {
+                point<double> tmp((double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5);
+                dr=tmp;
+            } while (abs(dr)>0.5);
+            rn = r[j]+hbox*dr;
+            rn /= abs(rn);
+            r(j)=rn;
+            move++;
+            E_new=energy(j, r, I);
+            if ((double)(rand()/(double)RAND_MAX)>=exp(-beta*(E_new-E_old))) {
+                r(j)=rtmp;
+                move--;
+            }
+        }
+        ratio=(double)move/100.0*N;
+        if (ratio<0.2) {
+            hbox*=0.9;
+        }
+        if (ratio>0.5) {
+            beta*=1.1;
+        }
+    }
+    
+    double sum=0.0;
+    
+    for (int i=0; i<N-1; i++) {
+        for (int j=i+1; j<N; j++) {
+            sum+=1.0/abs(r[i]-r[j]);
+        }
+    }
+    cout << (sum - N*N)/(N*N)<< endl;
+    
+    cout << abs(r[1]-r[0]) << endl;
+    
+    
+    return 0;
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /***********************************
@@ -24,196 +113,118 @@ using namespace std;
 **********************************/
 
 
-const int N=1000, M=4;
-const double L=1000.0, h=L/N, beta=1.2, A=8.0;
-double gam=0.01,sigma;
-dynamicVector<double> I(N+1,1.0), z(M,1.0), bet(N, -1.0), a(M, 64.0),J(N+1,0.0001);
-dynamicVector<double> n(M,1);
-dynamicVector<double> alp(N,2.0), phi(N+1,0.0), lambda(M,5.0), r(M,1.0), f(N+1, 0.0), xi(N+1,0.0);
-dynamicVector<dynamicVector<double> > C(M,J);
-
-template <class T>
-T sum(const dynamicVector<T>& u) {
-    T sum=0.0;
-    for (int i=0; i<u.dim(); i++) {
-        sum+=u[i];
-    }
-    return sum;
-}
-
-template <class T>
-dynamicVector<T> sum(const dynamicVector<dynamicVector<T> >& c) {
-    dynamicVector<T> tmp(N+1,0.0);
-    for (int i=0; i<c.dim(); i++) {
-        tmp+=a[i]*c[i];
-    }
-    return tmp;
-}
-
-template <class T>
-dynamicVector<T> log(const dynamicVector<T>& u) {
-    dynamicVector<T> tmp(u);
-    for (int i=0; i<u.dim(); i++) {
-        tmp(i)=log(u[i]);
-    }
-    return tmp;
-}
-
-dynamicVector<double> theta(int i) {
-    return -(a[i]/A)*log(I-sum(C))+log(C[i])+z[i]*(lambda[i]*I+phi)+r[i]*z[i]*z[i]*(h*sum(C[i])-n[i])*I;
-}
-
-
-int main(int argc, const char * argv[]) {
-
-    n(0)=3;
-    n(1)=2;
-    n(2)=1;
-    n(3)=0.001;
-    z(0)=-1.;
-    z(1)=-2.;
-    z(2)=-3.;
-    z(3)=1.;
-    a(0)=64;
-    a(1)=125;
-    a(2)=216;
-    a(3)=64;
-    sigma=-n(1)*z(1)-n(0)*z(0)-n(2)*z(2)-n(3)*z(3);
-    alp(0)=1.0;
-
-    int p=0;
-    while (p<100) {
-    // step 1
-    f=0.;
-    for (int i=0; i<M; i++) {
-        f+=C[i]*z[i];
-    }
-    f(0)=sigma/h;
-
-    tridag(bet, alp, bet, f*h*h, phi);
-
-    // Newton's method
-    int k=0;
-    double err=1.0;
-    while (err>1e-3&& k<100) {
-        dynamicVector<dynamicVector<double> > c;
-        c=C;
-        for (int i=0; i<M; i++) {
-            for (int m=0; m<xi.dim(); m++) {
-                xi(m)=1.0/(1.0/c[i][m]+a[i]*a[i]/(A-A*sum(c)[m]));
-            }
-            bool y=true;
-            gam=1.0;
-            while (y) {
-                y=false;
-
-            C(i)=c[i]-gam*(xi|(theta(i)-I*(r[i]*z[i]*z[i]*h*sum(theta(i)|xi))/(1+r[i]*z[i]*z[i]*h*sum(xi))));
-                if (min(C(i))<0||min(I-sum(C))<0 ) {
-                    C(i)=c[i];
-                    y=true;
-                    gam*=0.5;
-                }
-            }
-        }
-        err=0.0;
-        for (int i=0; i<M; i++) {
-            err+=norm1(theta(i));
-        }
-        k++;
-    }
-        for (int i=0; i<lambda.dim(); i++) {
-            lambda(i)+=r[i]*z[i]*(h*sum(C[i])-n[i]);
-        }
-        r=beta*r;
-        p++;
-    }
-
-
-    ofstream fout1("test.txt");
-        for (int i=0; i<phi.dim(); i++) {
-            fout1 << i*h << " " << phi[i] << "  "<<C[0][i]<<"  "<<C[1][i]<<"  "<<C[2][i]<<"   "<<C[3][i]<<endl;
-        }
-    fout1.close();
-    return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//const int N=1000, M=4;
+//const double L=1000.0, h=L/N, beta=1.2, A=8.0;
+//double gam=0.01,sigma;
+//dynamicVector<double> I(N+1,1.0), z(M,1.0), bet(N, -1.0), a(M, 64.0),J(N+1,0.0001);
+//dynamicVector<double> n(M,1);
+//dynamicVector<double> alp(N,2.0), phi(N+1,0.0), lambda(M,5.0), r(M,1.0), f(N+1, 0.0), xi(N+1,0.0);
+//dynamicVector<dynamicVector<double> > C(M,J);
+//
+//template <class T>
+//T sum(const dynamicVector<T>& u) {
+//    T sum=0.0;
+//    for (int i=0; i<u.dim(); i++) {
+//        sum+=u[i];
+//    }
+//    return sum;
+//}
+//
+//template <class T>
+//dynamicVector<T> sum(const dynamicVector<dynamicVector<T> >& c) {
+//    dynamicVector<T> tmp(N+1,0.0);
+//    for (int i=0; i<c.dim(); i++) {
+//        tmp+=a[i]*c[i];
+//    }
+//    return tmp;
+//}
+//
+//template <class T>
+//dynamicVector<T> log(const dynamicVector<T>& u) {
+//    dynamicVector<T> tmp(u);
+//    for (int i=0; i<u.dim(); i++) {
+//        tmp(i)=log(u[i]);
+//    }
+//    return tmp;
+//}
+//
+//dynamicVector<double> theta(int i) {
+//    return -(a[i]/A)*log(I-sum(C))+log(C[i])+z[i]*(lambda[i]*I+phi)+r[i]*z[i]*z[i]*(h*sum(C[i])-n[i])*I;
+//}
+//
+//
+//int main(int argc, const char * argv[]) {
+//
+//    n(0)=3;
+//    n(1)=2;
+//    n(2)=1;
+//    n(3)=0.001;
+//    z(0)=-1.;
+//    z(1)=-2.;
+//    z(2)=-3.;
+//    z(3)=1.;
+//    a(0)=64;
+//    a(1)=125;
+//    a(2)=216;
+//    a(3)=64;
+//    sigma=-n(1)*z(1)-n(0)*z(0)-n(2)*z(2)-n(3)*z(3);
+//    alp(0)=1.0;
+//
+//    int p=0;
+//    while (p<100) {
+//    // step 1
+//    f=0.;
+//    for (int i=0; i<M; i++) {
+//        f+=C[i]*z[i];
+//    }
+//    f(0)=sigma/h;
+//
+//    tridag(bet, alp, bet, f*h*h, phi);
+//
+//    // Newton's method
+//    int k=0;
+//    double err=1.0;
+//    while (err>1e-3&& k<100) {
+//        dynamicVector<dynamicVector<double> > c;
+//        c=C;
+//        for (int i=0; i<M; i++) {
+//            for (int m=0; m<xi.dim(); m++) {
+//                xi(m)=1.0/(1.0/c[i][m]+a[i]*a[i]/(A-A*sum(c)[m]));
+//            }
+//            bool y=true;
+//            gam=1.0;
+//            while (y) {
+//                y=false;
+//
+//            C(i)=c[i]-gam*(xi|(theta(i)-I*(r[i]*z[i]*z[i]*h*sum(theta(i)|xi))/(1+r[i]*z[i]*z[i]*h*sum(xi))));
+//                if (min(C(i))<0||min(I-sum(C))<0 ) {
+//                    C(i)=c[i];
+//                    y=true;
+//                    gam*=0.5;
+//                }
+//            }
+//        }
+//        err=0.0;
+//        for (int i=0; i<M; i++) {
+//            err+=norm1(theta(i));
+//        }
+//        k++;
+//    }
+//        for (int i=0; i<lambda.dim(); i++) {
+//            lambda(i)+=r[i]*z[i]*(h*sum(C[i])-n[i]);
+//        }
+//        r=beta*r;
+//        p++;
+//    }
+//
+//
+//    ofstream fout1("test.txt");
+//        for (int i=0; i<phi.dim(); i++) {
+//            fout1 << i*h << " " << phi[i] << "  "<<C[0][i]<<"  "<<C[1][i]<<"  "<<C[2][i]<<"   "<<C[3][i]<<endl;
+//        }
+//    fout1.close();
+//    return 0;
+//}
 
 /*************************************
 
