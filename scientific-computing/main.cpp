@@ -54,8 +54,9 @@ int main(int argc, const char * argv[]) {
             double E_old=energy(j, r, I), E_new;
             point<double> dr(0.0,0.0,0.0), rn(0.0,0.0,0.0),rtmp(r[j]);
             do {
-                point<double> tmp((double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5);
-                dr=tmp;
+//                point<double> tmp((double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5);
+//                dr=tmp;
+                dr.initial((double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5,(double)(rand()/(double)RAND_MAX)-0.5);
             } while (abs(dr)>0.5);
             rn = r[j]+hbox*dr;
             rn /= abs(rn);

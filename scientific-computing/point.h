@@ -23,6 +23,7 @@ public:
     const T rx()const{return x;}
     const T ry()const{return y;}
     const T rz()const{return z;}
+    void initial(T a = 0, T b = 0, T c=0){x=a;y=b;z=c;}
     const point& operator=(const point&);
     const point& operator+=(const point&);
     const point& operator-=(const point&);
